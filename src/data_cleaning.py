@@ -54,3 +54,29 @@ rows_before = len(df)
 df_clean = df.dropna(subset=critical_cols)
 rows_after = len(df_clean)
 removed = rows_before - rows_after
+
+# Validating confidence intervals
+if all(col in df_clean.columns for col in ["lower_ci", "indicator_value", "upper_ci"]):
+    invalid_ci = (df_clean["lower_ci"] > df_clean["indicator_value"]) | (
+        df_clean["indicator_value"] > df_clean["upper_ci"]
+    )
+    invalid_count = invalid_ci.sum()
+
+    if invalid_count > 0:
+        df_clean = df_clean[~invalid_ci].copy()
+
+
+# Convert numeric columns
+numeric_columns = [
+    "Indicator value",
+    "Lower CI",
+    "Upper CI",
+    "Standardised ratio",
+    "Observed",
+    "Population",
+    "Percent unclassified",
+]
+
+for col in numeric_columns:
+    df[col] = pd.to_numeric(df[col], errors="coerce")
+
