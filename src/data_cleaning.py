@@ -80,3 +80,30 @@ numeric_columns = [
 for col in numeric_columns:
     df[col] = pd.to_numeric(df[col], errors="coerce")
 
+# Replaced suppressed '*' with NaN
+suppress_cols = [
+    "Indicator value",
+    "Lower CI",
+    "Upper CI",
+    "Standardised ratio",
+    "Observed",
+    "Expected",
+    "Percent unclassified",
+]
+df[suppress_cols] = df[suppress_cols].replace("*", np.nan)
+
+print(df.head())
+
+
+# Dropping irrelevant or columns not needed for analysis
+final_columns_to_drop = [
+    "Period of coverage",
+    "Level",
+    "Quarter",
+    "Standardised ratio lower CI",
+    "Standardised ratio upper CI",
+    "Expected",
+]
+
+df.drop(columns=final_columns_to_drop, inplace=True)
+
