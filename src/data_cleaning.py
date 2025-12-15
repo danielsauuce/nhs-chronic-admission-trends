@@ -35,3 +35,22 @@ text_columns = ["Year", "Breakdown", "Level description"]
 for col in text_columns:
     df[col] = df[col].apply(lambda x: str(x).strip().lower() if pd.notna(x) else x)
 
+
+# Convert year column (e.g., 2023 from '2023/24')
+df["Year"] = df["Year"].str.strip()
+df["Year_Start"] = df["Year"].str.split("/").str[0]
+df["Year_Start"] = pd.to_numeric(df["Year_Start"], errors="coerce")
+
+# HANDLE MISSING VALUES
+# Check missing values in critical columns
+critical_cols = ["year", "breakdown", "level_description", "indicator_value"]
+print("\nMissing values in critical columns:")
+for col in critical_cols:
+    if col in df.columns:
+        missing = df[col].isna().sum()
+
+# Remove rows with missing critical values
+rows_before = len(df)
+df_clean = df.dropna(subset=critical_cols)
+rows_after = len(df_clean)
+removed = rows_before - rows_after
