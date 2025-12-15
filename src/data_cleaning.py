@@ -107,3 +107,23 @@ final_columns_to_drop = [
 
 df.drop(columns=final_columns_to_drop, inplace=True)
 
+
+# Check for outliers (INFORMATIONAL ONLY)
+if "indicator_value" in df_clean.columns:
+    Q1 = df_clean["indicator_value"].quantile(0.25)
+    Q3 = df_clean["indicator_value"].quantile(0.75)
+    IQR = Q3 - Q1
+
+    lower_bound = Q1 - 3 * IQR
+    upper_bound = Q3 + 3 * IQR
+
+    outliers = (df_clean["indicator_value"] < lower_bound) | (
+        df_clean["indicator_value"] > upper_bound
+    )
+
+# Sorting data for consistent ordering
+sort_cols = ["Year", "Breakdown"]
+if "Level description" in df_clean.columns:
+    sort_cols.append("Level description")
+
+df_clean = df_clean.sort_values(by=sort_cols).reset_index(drop=True)
