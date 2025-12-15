@@ -127,3 +127,36 @@ if "Level description" in df_clean.columns:
     sort_cols.append("Level description")
 
 df_clean = df_clean.sort_values(by=sort_cols).reset_index(drop=True)
+
+# Created additional derived columns
+# Financial year label (e.g., "2023/24")
+if "Year" in df_clean.columns:
+    df_clean["Financial_Year"] = (
+        df_clean["Year"].astype(str) + "/" + (df_clean["Year"] + 1).astype(str).str[2:]
+    )
+    print("Created 'Financial_Year' column")
+
+# CI width (measure of statistical uncertainty)
+if all(col in df_clean.columns for col in ["Lower CI", "Upper CI"]):
+    df_clean["CI_Width"] = df_clean["Upper CI"] - df_clean["Lower CI"]
+    print("Created 'CI_Width' column (higher = more uncertainty)")
+
+# Optional: Flag high-uncertainty rows (e.g., small populations)
+if "Population" in df_clean.columns and "CI_Width" in df_clean.columns:
+    df_clean["High_Uncertainty"] = (
+        df_clean["CI_Width"] > df_clean["CI_Width"].quantile(0.9)
+    ).astype(int)
+    print("Created 'High_Uncertainty' flag (top 10% widest CIs)")
+
+# Preserve cleaned view (after)
+df_after_cleaning = df.copy()
+
+# Save outputs
+df_before_cleaning.to_csv("../data/raw/before_cleaning.csv", index=False)
+
+df_after_cleaning.to_csv("../data/processed/after_cleaning.csv", index=False)
+
+
+# Final check
+print(df_after_cleaning.info())
+print(df_after_cleaning.head())
