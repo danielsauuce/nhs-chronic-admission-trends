@@ -193,7 +193,7 @@ plt.tight_layout()
 plt.savefig("../visualizations/plot5_age_trends.png", dpi=300)
 plt.close()
 
-# PLOT 6: AGE HEATMAP (FIXED DUPLICATES)
+# PLOT 6: AGE HEATMAP
 age_pivot = age.pivot_table(
     index="level_description",
     columns="year_start",
@@ -267,5 +267,90 @@ ax.text(
 
 plt.tight_layout()
 plt.savefig("../visualizations/plot7_age_slope_chart.png", dpi=300)
+plt.close()
+
+
+# PLOT 8: AGE % CHANGE RANKING
+comparison_sorted = comparison.sort_values("pct_change")
+
+fig, ax = plt.subplots(figsize=(10, 6))
+colors = ["green" if x < 0 else "red" for x in comparison_sorted["pct_change"]]
+
+ax.barh(
+    comparison_sorted["level_description"],
+    comparison_sorted["pct_change"],
+    color=colors,
+    alpha=0.7,
+)
+ax.axvline(0, color="black", linewidth=0.8)
+
+ax.set_xlabel("% Change (Start → End)")
+ax.set_title("Percentage Change in Admission Rates by Age Group")
+
+plt.tight_layout()
+plt.savefig("../visualizations/plot8_age_change_ranking.png", dpi=300)
+plt.close()
+
+
+# PLOT 9 & 10: GENDER
+fig, ax = plt.subplots(figsize=(14, 7))
+
+for g in gender["level_description"].unique():
+    subset = gender[gender["level_description"] == g]
+    ax.plot(
+        subset["year_start"],
+        subset["indicator_value"],
+        marker="o",
+        label=g.title(),
+    )
+
+ax.set_title("Admission Rates by Gender")
+ax.legend(title="Gender")
+
+plt.tight_layout()
+plt.savefig("../visualizations/plot9_gender_trends.png", dpi=300)
+plt.close()
+
+male = gender[gender["level_description"] == "male"].sort_values("year_start")
+female = gender[gender["level_description"] == "female"].sort_values("year_start")
+diff = male["indicator_value"].values - female["indicator_value"].values
+
+plt.figure(figsize=(14, 6))
+
+plt.fill_between(
+    male["year_start"],
+    0,
+    diff,
+    where=(diff >= 0),
+    color="#3498DB",
+    alpha=0.5,
+    label="Male > Female",
+)
+plt.fill_between(
+    male["year_start"],
+    0,
+    diff,
+    where=(diff < 0),
+    color="#E74C3C",
+    alpha=0.5,
+    label="Female > Male",
+)
+
+plt.plot(
+    male["year_start"],
+    diff,
+    color="black",
+    linewidth=2,
+    label="Male − Female Difference",
+)
+
+plt.axhline(0, linestyle="--", color="gray")
+plt.xlabel("Financial Year Start")
+plt.ylabel("Admission Rate Difference")
+plt.title("Gender Gap in Admission Rates (Male − Female)")
+plt.legend(loc="upper right")
+
+plt.tight_layout()
+plt.savefig("../visualizations/plot10_gender_difference.png", dpi=300)
 plt.close()
 
