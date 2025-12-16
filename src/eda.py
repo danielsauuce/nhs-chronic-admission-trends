@@ -81,3 +81,32 @@ axes[1].set_xlabel("Missing Data (%)")
 plt.tight_layout()
 plt.savefig("../visualizations/plot0_missing_data_before_after.png", dpi=300)
 plt.close()
+
+# PLOT 1: ENGLAND OVERALL TREND
+fig, ax = plt.subplots(figsize=(14, 7))
+ax.plot(
+    england["year_start"],
+    england["indicator_value"],
+    marker="o",
+    linewidth=2.5,
+    label="Admission Rate",
+)
+ax.fill_between(
+    england["year_start"], england["lower_ci"], england["upper_ci"], alpha=0.2
+)
+z = np.polyfit(england["year_start"], england["indicator_value"], 1)
+ax.plot(
+    england["year_start"],
+    np.poly1d(z)(england["year_start"]),
+    linestyle="--",
+    linewidth=2,
+    color="red",
+)
+ax.axvspan(2020, 2021, alpha=0.1, color="gray")
+ax.set_xlabel("Financial Year Start")
+ax.set_ylabel("Admission Rate (per 100,000)")
+ax.set_title("England: Chronic ACSC Admission Rates (2003/04–2023/24)")
+plt.tight_layout()
+plt.savefig("../visualizations/plot1_england_trend.png", dpi=300)
+plt.close()
+
