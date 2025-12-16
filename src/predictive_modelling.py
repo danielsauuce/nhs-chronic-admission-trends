@@ -91,4 +91,68 @@ plt.savefig(
 )
 plt.close()
 
+# PLOT 3: RESIDUALS
+residuals = y_eng - england_model["predicted"]
+plt.figure(figsize=(10, 6))
+plt.scatter(england_model["predicted"], residuals, alpha=0.7)
+plt.axhline(0, linestyle="--", color="red")
+plt.xlabel("Fitted Values")
+plt.ylabel("Residuals")
+plt.title("Residual Plot for Linear Regression Model")
+plt.tight_layout()
+plt.savefig("../visualizations/Forecast/predictive_plot3_residuals.png", dpi=300)
+plt.close()
 
+
+# SUPPLEMENTARY: CONDITION-LEVEL FORECASTING (OPTIONAL)
+top_conditions = (
+    condition.groupby("level_description")["indicator_value"]
+    .mean()
+    .sort_values(ascending=False)
+    .head(3)
+    .index
+)
+
+plt.figure(figsize=(14, 7))
+for cond in top_conditions:
+    subset = (
+        condition[condition["level_description"] == cond]
+        .dropna(subset=["year_start", "indicator_value"])
+        .sort_values("year_start")
+    )
+
+    if len(subset) < 5:  # skip very short time series
+        continue
+
+    X_cond = subset[["year_start"]]
+    y_cond = subset["indicator_value"]
+
+    model_cond = LinearRegression()
+    model_cond.fit(X_cond, y_cond)
+
+    future_years_cond = pd.DataFrame(
+        {
+            "year_start": range(
+                subset["year_start"].max() + 1, subset["year_start"].max() + 6
+            )
+        }
+    )
+    forecast_cond = model_cond.predict(future_years_cond)
+
+    plt.plot(subset["year_start"], y_cond, marker="o", label=f"{cond} (Observed)")
+    plt.plot(
+        future_years_cond["year_start"],
+        forecast_cond,
+        linestyle="--",
+        label=f"{cond} (Forecast)",
+    )
+
+plt.xlabel("Financial Year Start")
+plt.ylabel("Admission Rate (per 100,000)")
+plt.title("Supplementary Forecast: Selected Chronic Conditions")
+plt.legend()
+plt.tight_layout()
+plt.savefig(
+    "../visualizations/Forecast/predictive_plotS1_condition_forecast.png", dpi=300
+)
+plt.close()
