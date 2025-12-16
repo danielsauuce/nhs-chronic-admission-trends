@@ -110,3 +110,35 @@ plt.tight_layout()
 plt.savefig("../visualizations/plot1_england_trend.png", dpi=300)
 plt.close()
 
+
+# PLOT 3: YEAR-ON-YEAR % CHANGE
+england = england.sort_values("year_start")
+england["pct_change"] = england["indicator_value"].pct_change() * 100
+
+fig, ax = plt.subplots(figsize=(14, 6))
+colors = [
+    "red" if x > 5 else "green" if x < -5 else "steelblue"
+    for x in england["pct_change"][1:]
+]
+ax.bar(england["year_start"][1:], england["pct_change"][1:], color=colors, alpha=0.7)
+ax.axhline(0, linewidth=0.8)
+ax.set_xlabel("Financial Year Start")
+ax.set_ylabel("% Change from Previous Year")
+ax.set_title("Year-on-Year Percentage Change in Admission Rates")
+plt.tight_layout()
+plt.savefig("../visualizations/plot3_yoy_change.png", dpi=300)
+plt.close()
+
+
+# PLOT 4: ROLLING 3-YEAR CHANGE
+england["rolling_change"] = england["pct_change"].rolling(3, center=True).mean()
+fig, ax = plt.subplots(figsize=(14, 6))
+ax.plot(england["year_start"], england["rolling_change"], marker="o")
+ax.axhline(0, linewidth=0.8)
+ax.set_xlabel("Financial Year Start")
+ax.set_ylabel("Rolling 3-Year Avg Change (%)")
+ax.set_title("Acceleration / Deceleration of Admission Trends")
+plt.tight_layout()
+plt.savefig("../visualizations/plot4_rolling_change.png", dpi=300)
+plt.close()
+
