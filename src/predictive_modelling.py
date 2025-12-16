@@ -46,3 +46,32 @@ r2_test = r2_score(y_test, y_test_pred)
 
 print(f"TRAIN RMSE: {rmse_train:.2f}, R²: {r2_train:.3f}")
 print(f"TEST RMSE: {rmse_test:.2f}, R²: {r2_test:.3f}")
+
+# PLOT 1: HISTORICAL + FORECAST
+plt.figure(figsize=(14, 7))
+plt.plot(
+    england_model["year_start"],
+    england_model["indicator_value"],
+    marker="o",
+    label="Observed",
+)
+plt.plot(
+    england_model["year_start"],
+    england_model["predicted"],
+    linestyle="--",
+    label="Fitted Trend",
+)
+plt.plot(
+    future_years_eng["year_start"],
+    future_years_eng["forecast"],
+    linestyle="--",
+    marker="o",
+    label="Forecast",
+)
+plt.xlabel("Financial Year Start")
+plt.ylabel("Admission Rate (per 100,000)")
+plt.title("Forecast of Chronic ACSC Admission Rates in England")
+plt.legend()
+plt.tight_layout()
+plt.savefig("../visualizations/Forecast/predictive_plot1_forecast_trend.png", dpi=300)
+plt.close()
