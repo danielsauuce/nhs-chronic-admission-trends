@@ -354,3 +354,99 @@ plt.tight_layout()
 plt.savefig("../visualizations/plot10_gender_difference.png", dpi=300)
 plt.close()
 
+
+# PLOT 16–18: DEPRIVATION
+deprivation["decile"] = (
+    deprivation["level_description"].str.extract(r"(\d+)").astype(int)
+)
+
+plt.figure(figsize=(14, 7))
+sns.boxplot(data=deprivation, x="decile", y="indicator_value", palette="RdYlGn_r")
+sns.regplot(
+    x=deprivation["decile"],
+    y=deprivation["indicator_value"],
+    scatter=False,
+    color="blue",
+)
+
+legend_elements = [
+    Line2D([0], [0], color="black", lw=2, label="Distribution by Decile"),
+    Line2D([0], [0], color="blue", lw=2, label="Linear Trend Across Deciles"),
+]
+
+plt.legend(handles=legend_elements)
+plt.title("Admission Rates by Deprivation Decile with Trend")
+
+plt.tight_layout()
+plt.savefig("../visualizations/plot16_deprivation_boxplot.png", dpi=300)
+plt.close()
+
+plt.figure(figsize=(14, 7))
+colors = sns.color_palette("RdYlGn", 10)
+
+for d in range(1, 11):
+    subset = deprivation[deprivation["decile"] == d]
+    lw = 2.5 if d in [1, 5, 10] else 1.0
+    plt.plot(
+        subset["year_start"],
+        subset["indicator_value"],
+        marker="o",
+        linewidth=lw,
+        color=colors[d - 1],
+        label=f"D{d}",
+    )
+
+plt.xlabel("Financial Year Start")
+plt.ylabel("Admission Rate")
+plt.title("Deprivation Trends Over Time (All Deciles)")
+plt.legend(
+    title="Deprivation Decile\n(1 = Most deprived, 10 = Least deprived)",
+    ncol=2,
+)
+
+plt.tight_layout()
+plt.savefig("../visualizations/plot17_deprivation_trends_all_deciles.png", dpi=300)
+plt.close()
+
+d1 = deprivation[deprivation["decile"] == 1].sort_values("year_start")
+d10 = deprivation[deprivation["decile"] == 10].sort_values("year_start")
+ratio = d1["indicator_value"].values / d10["indicator_value"].values
+
+fig, ax1 = plt.subplots(figsize=(14, 6))
+
+ax1.plot(
+    d1["year_start"],
+    d1["indicator_value"],
+    marker="o",
+    color="#D32F2F",
+    label="Decile 1",
+)
+ax1.plot(
+    d10["year_start"],
+    d10["indicator_value"],
+    marker="o",
+    color="#388E3C",
+    label="Decile 10",
+)
+ax1.set_ylabel("Admission Rate")
+
+ax2 = ax1.twinx()
+ax2.plot(
+    d1["year_start"],
+    ratio,
+    marker="o",
+    color="#8E24AA",
+    label="Inequality Ratio (D1 / D10)",
+)
+ax2.axhline(1, linestyle="--", color="gray")
+ax2.set_ylabel("Inequality Ratio")
+
+ax1.set_xlabel("Financial Year Start")
+fig.suptitle("Health Inequality: Absolute Rates and Relative Ratio")
+
+ax1.legend(loc="upper left")
+ax2.legend(loc="upper right")
+
+plt.tight_layout()
+plt.savefig("../visualizations/plot18_inequality_ratio_dual.png", dpi=300)
+plt.close()
