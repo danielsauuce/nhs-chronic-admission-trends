@@ -75,3 +75,20 @@ plt.legend()
 plt.tight_layout()
 plt.savefig("../visualizations/Forecast/predictive_plot1_forecast_trend.png", dpi=300)
 plt.close()
+
+# PLOT 2: ACTUAL VS PREDICTED
+plt.figure(figsize=(6, 6))
+plt.scatter(y_eng, england_model["predicted"], alpha=0.7)
+plt.plot(
+    [y_eng.min(), y_eng.max()], [y_eng.min(), y_eng.max()], linestyle="--", color="red"
+)
+plt.xlabel("Actual Values")
+plt.ylabel("Predicted Values")
+plt.title("Actual vs Predicted Admission Rates")
+plt.tight_layout()
+plt.savefig(
+    "../visualizations/Forecast/predictive_plot2_actual_vs_predicted.png", dpi=300
+)
+plt.close()
+
+
