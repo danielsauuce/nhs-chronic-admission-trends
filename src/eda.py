@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -34,6 +36,7 @@ missing_before_df = (
     .reset_index()
     .rename(columns={"index": "Column", 0: "Missing %"})
 )
+
 missing_after_df = (
     missing_after_pct.sort_values(ascending=False)
     .head(10)
@@ -85,7 +88,6 @@ plt.close()
 # PLOT 1: ENGLAND OVERALL TREND
 fig, ax = plt.subplots(figsize=(14, 7))
 
-# Admission rate
 ax.plot(
     england["year_start"],
     england["indicator_value"],
@@ -94,7 +96,6 @@ ax.plot(
     label="Observed Admission Rate",
 )
 
-# Confidence interval
 ax.fill_between(
     england["year_start"],
     england["lower_ci"],
@@ -103,7 +104,6 @@ ax.fill_between(
     label="95% Confidence Interval",
 )
 
-# Trend line
 z = np.polyfit(england["year_start"], england["indicator_value"], 1)
 ax.plot(
     england["year_start"],
@@ -114,20 +114,13 @@ ax.plot(
     label="Linear Trend",
 )
 
-# COVID period
-ax.axvspan(
-    2020,
-    2021,
-    alpha=0.1,
-    color="gray",
-    label="COVID-19 Period",
-)
+ax.axvspan(2020, 2021, alpha=0.1, color="gray", label="COVID-19 Period")
 
 ax.set_xlabel("Financial Year Start")
 ax.set_ylabel("Admission Rate (per 100,000)")
 ax.set_title("England: Chronic ACSC Admission Rates (2003/04–2023/24)")
-
 ax.legend(loc="upper left")
+
 plt.tight_layout()
 plt.savefig("../visualizations/plot1_england_trend.png", dpi=300)
 plt.close()
@@ -142,11 +135,22 @@ colors = [
     "red" if x > 5 else "green" if x < -5 else "steelblue"
     for x in england["pct_change"][1:]
 ]
+
 ax.bar(england["year_start"][1:], england["pct_change"][1:], color=colors, alpha=0.7)
 ax.axhline(0, linewidth=0.8)
+
+legend_elements = [
+    Patch(facecolor="red", label="Increase > 5%"),
+    Patch(facecolor="green", label="Decrease < -5%"),
+    Patch(facecolor="steelblue", label="Change between -5% and 5%"),
+]
+
+ax.legend(handles=legend_elements, loc="upper right")
+
 ax.set_xlabel("Financial Year Start")
 ax.set_ylabel("% Change from Previous Year")
 ax.set_title("Year-on-Year Percentage Change in Admission Rates")
+
 plt.tight_layout()
 plt.savefig("../visualizations/plot3_yoy_change.png", dpi=300)
 plt.close()
@@ -154,12 +158,21 @@ plt.close()
 
 # PLOT 4: ROLLING 3-YEAR CHANGE
 england["rolling_change"] = england["pct_change"].rolling(3, center=True).mean()
+
 fig, ax = plt.subplots(figsize=(14, 6))
-ax.plot(england["year_start"], england["rolling_change"], marker="o")
+ax.plot(
+    england["year_start"],
+    england["rolling_change"],
+    marker="o",
+    label="Rolling 3-Year Avg % Change",
+)
 ax.axhline(0, linewidth=0.8)
+ax.legend()
+
 ax.set_xlabel("Financial Year Start")
 ax.set_ylabel("Rolling 3-Year Avg Change (%)")
 ax.set_title("Acceleration / Deceleration of Admission Trends")
+
 plt.tight_layout()
 plt.savefig("../visualizations/plot4_rolling_change.png", dpi=300)
 plt.close()
