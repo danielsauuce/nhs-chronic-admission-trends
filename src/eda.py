@@ -176,3 +176,21 @@ ax.set_title("Acceleration / Deceleration of Admission Trends")
 plt.tight_layout()
 plt.savefig("../visualizations/plot4_rolling_change.png", dpi=300)
 plt.close()
+
+# PLOT 5: AGE GROUP TRENDS
+fig, ax = plt.subplots(figsize=(14, 7))
+
+for group in sorted(age["level_description"].unique()):
+    subset = age[age["level_description"] == group]
+    ax.plot(subset["year_start"], subset["indicator_value"], marker="o", label=group)
+
+ax.set_xlabel("Financial Year Start")
+ax.set_ylabel("Admission Rate (per 100,000)")
+ax.set_title("Admission Rates by Age Group")
+ax.legend(title="Age Group", ncol=2)
+
+plt.tight_layout()
+plt.savefig("../visualizations/plot5_age_trends.png", dpi=300)
+plt.close()
+
+
