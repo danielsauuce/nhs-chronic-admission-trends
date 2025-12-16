@@ -193,4 +193,79 @@ plt.tight_layout()
 plt.savefig("../visualizations/plot5_age_trends.png", dpi=300)
 plt.close()
 
+# PLOT 6: AGE HEATMAP (FIXED DUPLICATES)
+age_pivot = age.pivot_table(
+    index="level_description",
+    columns="year_start",
+    values="indicator_value",
+    aggfunc="mean",
+)
+
+plt.figure(figsize=(16, 6))
+ax = sns.heatmap(age_pivot, cmap="YlOrRd")
+ax.collections[0].colorbar.set_label("Admission Rate (per 100,000)")
+
+plt.title("Admission Rate Heatmap by Age Group and Year")
+plt.tight_layout()
+plt.savefig("../visualizations/plot6_age_heatmap.png", dpi=300)
+plt.close()
+
+
+# PLOT 7: AGE SLOPE CHART (START VS END)
+age_start = age[age["year_start"] == age["year_start"].min()]
+age_end = age[age["year_start"] == age["year_start"].max()]
+
+comparison = age_start.merge(
+    age_end, on="level_description", suffixes=("_start", "_end")
+)
+
+comparison["pct_change"] = (
+    (comparison["indicator_value_end"] - comparison["indicator_value_start"])
+    / comparison["indicator_value_start"]
+    * 100
+)
+
+fig, ax = plt.subplots(figsize=(12, 6))
+
+for _, row in comparison.iterrows():
+    ax.plot(
+        [0, 1],
+        [row["indicator_value_start"], row["indicator_value_end"]],
+        marker="o",
+        color="#2E86AB",
+    )
+    ax.text(
+        -0.05,
+        row["indicator_value_start"],
+        row["level_description"],
+        ha="right",
+        va="center",
+    )
+    ax.text(
+        1.05,
+        row["indicator_value_end"],
+        f"{row['pct_change']:+.1f}%",
+        ha="left",
+        va="center",
+    )
+
+ax.set_xlim(-0.5, 1.5)
+ax.set_xticks([0, 1])
+ax.set_xticklabels([f"{age['year_start'].min()}", f"{age['year_start'].max()}"])
+ax.set_ylabel("Admission Rate (per 100,000)")
+ax.set_title("Age Group Admission Rates: Slope Chart (Start → End)")
+
+ax.text(
+    0.5,
+    -0.15,
+    "Each line represents an age group.\nLeft = earliest year, Right = latest year.",
+    ha="center",
+    va="top",
+    transform=ax.transAxes,
+    fontsize=9,
+)
+
+plt.tight_layout()
+plt.savefig("../visualizations/plot7_age_slope_chart.png", dpi=300)
+plt.close()
 
