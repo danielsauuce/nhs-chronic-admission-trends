@@ -84,16 +84,26 @@ plt.close()
 
 # PLOT 1: ENGLAND OVERALL TREND
 fig, ax = plt.subplots(figsize=(14, 7))
+
+# Admission rate
 ax.plot(
     england["year_start"],
     england["indicator_value"],
     marker="o",
     linewidth=2.5,
-    label="Admission Rate",
+    label="Observed Admission Rate",
 )
+
+# Confidence interval
 ax.fill_between(
-    england["year_start"], england["lower_ci"], england["upper_ci"], alpha=0.2
+    england["year_start"],
+    england["lower_ci"],
+    england["upper_ci"],
+    alpha=0.2,
+    label="95% Confidence Interval",
 )
+
+# Trend line
 z = np.polyfit(england["year_start"], england["indicator_value"], 1)
 ax.plot(
     england["year_start"],
@@ -101,11 +111,23 @@ ax.plot(
     linestyle="--",
     linewidth=2,
     color="red",
+    label="Linear Trend",
 )
-ax.axvspan(2020, 2021, alpha=0.1, color="gray")
+
+# COVID period
+ax.axvspan(
+    2020,
+    2021,
+    alpha=0.1,
+    color="gray",
+    label="COVID-19 Period",
+)
+
 ax.set_xlabel("Financial Year Start")
 ax.set_ylabel("Admission Rate (per 100,000)")
 ax.set_title("England: Chronic ACSC Admission Rates (2003/04–2023/24)")
+
+ax.legend(loc="upper left")
 plt.tight_layout()
 plt.savefig("../visualizations/plot1_england_trend.png", dpi=300)
 plt.close()
@@ -141,4 +163,3 @@ ax.set_title("Acceleration / Deceleration of Admission Trends")
 plt.tight_layout()
 plt.savefig("../visualizations/plot4_rolling_change.png", dpi=300)
 plt.close()
-
