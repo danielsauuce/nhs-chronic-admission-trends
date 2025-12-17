@@ -76,7 +76,7 @@ for col in ["standardised_ratio", "observed"]:
             lambda x: x.fillna(x.median())
         )
 
-# 3. Fill percent_unclassified with 0 (or any other meaningful value)
+# 3. Fill percent_unclassified with 0
 if "percent_unclassified" in df_clean.columns:
     df_clean["percent_unclassified"] = df_clean["percent_unclassified"].fillna(0)
 
