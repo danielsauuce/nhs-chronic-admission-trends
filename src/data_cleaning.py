@@ -24,6 +24,7 @@ for col in object_cols:
 
 df.columns = df.columns.str.lower().str.replace(" ", "_")
 
+# STANDARDIZE TEXT VALUES
 text_columns = ["year", "breakdown", "level_description"]
 for col in text_columns:
     if col in df.columns:
