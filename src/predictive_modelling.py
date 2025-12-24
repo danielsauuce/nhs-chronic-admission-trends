@@ -5,6 +5,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 import statsmodels.api as sm  # for prediction intervals
+from prophet import Prophet
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 
 # LOAD DATA
@@ -152,4 +154,143 @@ plt.title("Residual Plot for Linear Regression Model")
 plt.grid(alpha=0.3)
 plt.tight_layout()
 plt.savefig("../visualizations/Forecast/predictive_plot3_residuals_pi.png", dpi=300)
+plt.close()
+
+
+# =============================================================================
+# PROPHET TIME-SERIES MODEL (ADDED MODEL – DOES NOT MODIFY PREVIOUS CODE)
+# =============================================================================
+
+from prophet import Prophet
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# LOAD DATA
+df_prophet = pd.read_csv("../data/processed/england.csv")
+df_prophet = df_prophet[["year_start", "indicator_value"]].dropna()
+df_prophet = df_prophet.rename(columns={"year_start": "ds", "indicator_value": "y"})
+df_prophet["ds"] = pd.to_datetime(df_prophet["ds"], format="%Y")
+
+# TEMPORAL TRAIN/TEST SPLIT
+train_cutoff = pd.to_datetime("2021-01-01")
+train = df_prophet[df_prophet["ds"] <= train_cutoff].copy()
+test = df_prophet[df_prophet["ds"] > train_cutoff].copy()
+
+# INITIALISE & FIT PROPHET
+prophet_model = Prophet(
+    yearly_seasonality=False,
+    weekly_seasonality=False,
+    daily_seasonality=False,
+    changepoint_prior_scale=0.05,
+    interval_width=0.95,
+)
+prophet_model.fit(train)
+
+# PREDICT ON TEST
+test_forecast = prophet_model.predict(test[["ds"]])
+test_forecast = test_forecast.set_index("ds").reindex(test["ds"]).reset_index()  # ALIGN
+y_true = test["y"].values
+y_pred = test_forecast["yhat"].values
+
+rmse_prophet = np.sqrt(mean_squared_error(y_true, y_pred))
+r2_prophet = r2_score(y_true, y_pred)
+mae_prophet = mean_absolute_error(y_true, y_pred)
+
+# REFIT ON FULL DATA FOR 5-YEAR FORECAST
+prophet_full = Prophet(
+    yearly_seasonality=False,
+    weekly_seasonality=False,
+    daily_seasonality=False,
+    changepoint_prior_scale=0.05,
+    interval_width=0.95,
+)
+prophet_full.fit(df_prophet)
+future = prophet_full.make_future_dataframe(periods=5, freq="Y")
+forecast = prophet_full.predict(future)
+
+forecast_future = forecast[forecast["ds"] > df_prophet["ds"].max()]
+
+# --- VISUALISATION 1: FULL FORECAST ---
+fig, ax = plt.subplots(figsize=(14, 7))
+ax.plot(df_prophet["ds"], df_prophet["y"], "o", color="black", label="Observed")
+ax.plot(forecast["ds"], forecast["yhat"], color="blue", label="Fitted & Forecast")
+ax.fill_between(
+    forecast["ds"],
+    forecast["yhat_lower"],
+    forecast["yhat_upper"],
+    alpha=0.25,
+    color="gray",
+    label="95% Prediction Interval",
+)
+ax.axvspan(
+    pd.to_datetime("2020"),
+    pd.to_datetime("2021"),
+    alpha=0.15,
+    color="orange",
+    label="COVID-19 Period",
+)
+ax.set_xlabel("Year")
+ax.set_ylabel("Admission Rate (per 100,000)")
+ax.set_title("Prophet Forecast of Chronic ACSC Admission Rates (England)")
+ax.legend()
+ax.grid(alpha=0.3)
+plt.tight_layout()
+plt.savefig(
+    "../visualizations/Forecast/prophet_forecast_full.png", dpi=300, bbox_inches="tight"
+)
+plt.close()
+
+# --- VISUALISATION 2: ACTUAL VS PREDICTED ---
+# Align test y and yhat to ensure same length
+test_aligned = test.copy()
+test_aligned["yhat"] = y_pred
+fig, ax = plt.subplots(figsize=(7, 7))
+ax.scatter(test_aligned["y"], test_aligned["yhat"], alpha=0.7, edgecolors="black")
+ax.plot(
+    [test_aligned["y"].min(), test_aligned["y"].max()],
+    [test_aligned["y"].min(), test_aligned["y"].max()],
+    "r--",
+    label="Perfect Fit",
+)
+ax.set_xlabel("Actual Admission Rate")
+ax.set_ylabel("Predicted Admission Rate")
+ax.set_title("Prophet: Actual vs Predicted")
+ax.legend()
+ax.grid(alpha=0.3)
+plt.tight_layout()
+plt.savefig(
+    "../visualizations/Forecast/prophet_actual_vs_predicted.png",
+    dpi=300,
+    bbox_inches="tight",
+)
+plt.close()
+
+# --- VISUALISATION 3: RESIDUALS ---
+residuals = test_aligned["y"] - test_aligned["yhat"]
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+axes[0].scatter(test_aligned["yhat"], residuals, alpha=0.7)
+axes[0].axhline(0, linestyle="--", color="red")
+axes[0].set_xlabel("Fitted Values")
+axes[0].set_ylabel("Residuals")
+axes[0].set_title("Residuals vs Fitted")
+axes[0].grid(alpha=0.3)
+axes[1].hist(residuals, bins=10, edgecolor="black", alpha=0.7)
+axes[1].axvline(0, linestyle="--", color="red")
+axes[1].set_xlabel("Residuals")
+axes[1].set_ylabel("Frequency")
+axes[1].set_title("Residual Distribution")
+axes[1].grid(alpha=0.3, axis="y")
+plt.tight_layout()
+plt.savefig(
+    "../visualizations/Forecast/prophet_residuals.png", dpi=300, bbox_inches="tight"
+)
+plt.close()
+
+# --- VISUALISATION 4: COMPONENTS ---
+fig = prophet_full.plot_components(forecast)
+plt.savefig(
+    "../visualizations/Forecast/prophet_components.png", dpi=300, bbox_inches="tight"
+)
 plt.close()
