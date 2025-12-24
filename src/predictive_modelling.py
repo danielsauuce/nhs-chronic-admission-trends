@@ -1,17 +1,22 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 import statsmodels.api as sm  # for prediction intervals
 from prophet import Prophet
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 # LOAD DATA
 england = pd.read_csv("../data/processed/england.csv")
 condition = pd.read_csv("../data/processed/condition.csv")
+df_prophet = pd.read_csv("../data/processed/england.csv")
+df_prophet = df_prophet[["year_start", "indicator_value"]].dropna()
+df_prophet = df_prophet.rename(columns={"year_start": "ds", "indicator_value": "y"})
+df_prophet["ds"] = pd.to_datetime(df_prophet["ds"], format="%Y")
+
 
 
 # DATA PREPARATION
@@ -161,17 +166,6 @@ plt.close()
 # PROPHET TIME-SERIES MODEL (ADDED MODEL – DOES NOT MODIFY PREVIOUS CODE)
 # =============================================================================
 
-from prophet import Prophet
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-# LOAD DATA
-df_prophet = pd.read_csv("../data/processed/england.csv")
-df_prophet = df_prophet[["year_start", "indicator_value"]].dropna()
-df_prophet = df_prophet.rename(columns={"year_start": "ds", "indicator_value": "y"})
-df_prophet["ds"] = pd.to_datetime(df_prophet["ds"], format="%Y")
 
 # TEMPORAL TRAIN/TEST SPLIT
 train_cutoff = pd.to_datetime("2021-01-01")
